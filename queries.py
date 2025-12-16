@@ -1,81 +1,96 @@
 queries = {
 
-# ---------- artifact_metadata ----------
-"1. Artifacts from 11th century & Byzantine culture":
+# ==================================================
+# 🏺 artifact_metadata Table
+# ==================================================
+
+"1.List all artifacts from the 11th century belonging to Byzantine culture.":
 """
-SELECT * FROM artifact_metadata
-WHERE century = '11th century' AND culture = 'Byzantine';
+SELECT *
+FROM artifact_metadata
+WHERE culture = 'Byzantine'
+  AND dated LIKE '%11%';
 """,
 
-"2. Unique cultures":
+"2.What are the unique cultures represented in the artifacts?":
 """
-SELECT DISTINCT culture FROM artifact_metadata
+SELECT DISTINCT culture
+FROM artifact_metadata
 WHERE culture IS NOT NULL;
 """,
 
-"3. Artifacts from Archaic Period":
+"3.List all artifacts from the Archaic Period.":
 """
-SELECT * FROM artifact_metadata
+SELECT *
+FROM artifact_metadata
 WHERE period = 'Archaic Period';
 """,
 
-"4. Titles ordered by accession year (desc)":
+"4.List artifact titles ordered by accession year in descending order.":
 """
-SELECT title, accessionyear
+SELECT title
 FROM artifact_metadata
-ORDER BY accessionyear DESC;
+ORDER BY title DESC;
 """,
 
-"5. Artifact count per department":
+"5.How many artifacts are there per department?":
 """
-SELECT department, COUNT(*) AS total
+SELECT department, COUNT(*) AS total_artifacts
 FROM artifact_metadata
 GROUP BY department;
 """,
 
-# ---------- artifact_media ----------
-"6. Artifacts with more than 1 image":
+# ==================================================
+# 🖼️ artifact_media Table
+# ==================================================
+
+"6.Which artifacts have more than 1 image?":
 """
 SELECT objectid, imagecount
 FROM artifact_media
 WHERE imagecount > 1;
 """,
 
-"7. Average media rank":
+"7.What is the average rank of all artifacts?":
 """
-SELECT AVG(media_rank) AS avg_rank
+SELECT AVG(rank) AS average_rank
 FROM artifact_media;
 """,
 
-"8. Higher colorcount than mediacount":
+"8.Which artifacts have a higher colorcount than mediacount?":
 """
 SELECT objectid, colorcount, mediacount
 FROM artifact_media
 WHERE colorcount > mediacount;
 """,
 
-"9. Artifacts created between 1500 & 1600":
+"9.List all artifacts created between 1500 and 1600.":
 """
 SELECT objectid, datebegin, dateend
 FROM artifact_media
-WHERE datebegin >= 1500 AND dateend <= 1600;
+WHERE datebegin >= 1500
+  AND dateend <= 1600;
 """,
 
-"10. Artifacts with no media files":
+"10.How many artifacts have no media files?":
 """
 SELECT objectid
 FROM artifact_media
 WHERE mediacount = 0;
 """,
 
-# ---------- artifact_colors ----------
-"11. Distinct hues":
+# ==================================================
+# 🎨 artifact_colors Table
+# ==================================================
+
+"11.What are all the distinct hues used in the dataset?":
 """
-SELECT DISTINCT hue FROM artifact_colors
+SELECT DISTINCT hue
+FROM artifact_colors
 WHERE hue IS NOT NULL;
 """,
 
-"12. Top 5 most used colors":
+"12.What are the top 5 most used colors by frequency?":
 """
 SELECT color, COUNT(*) AS frequency
 FROM artifact_colors
@@ -84,50 +99,57 @@ ORDER BY frequency DESC
 LIMIT 5;
 """,
 
-"13. Avg coverage % per hue":
+"13.What is the average coverage percentage for each hue?":
 """
-SELECT hue, AVG(percent) AS avg_percent
+SELECT hue, AVG(percent) AS avg_coverage
 FROM artifact_colors
 GROUP BY hue;
 """,
 
-"14. Colors for a given artifact ID":
+"14.List all colors used for a given artifact ID.":
 """
-SELECT * FROM artifact_colors
+SELECT *
+FROM artifact_colors
 WHERE objectid = 1;
 """,
 
-"15. Total color entries":
+"15.What is the total number of color entries in the dataset?":
 """
 SELECT COUNT(*) AS total_colors
 FROM artifact_colors;
 """,
 
-# ---------- JOIN QUERIES ----------
-"16. Titles & hues (Byzantine culture)":
+# ==================================================
+# 🔗 Join-Based Queries
+# ==================================================
+
+"16.List artifact titles and hues for all artifacts belonging to the Byzantine culture.":
 """
 SELECT m.title, c.hue
 FROM artifact_metadata m
-JOIN artifact_colors c ON m.id = c.objectid
+JOIN artifact_colors c
+ON m.id = c.objectid
 WHERE m.culture = 'Byzantine';
 """,
 
-"17. Artifact titles with hues":
+"17.List each artifact title with its associated hues.":
 """
 SELECT m.title, c.hue
 FROM artifact_metadata m
-JOIN artifact_colors c ON m.id = c.objectid;
+JOIN artifact_colors c
+ON m.id = c.objectid;
 """,
 
-"18. Titles, cultures & media rank (period not null)":
+"18.Get artifact titles, cultures, and media ranks where the period is not null.":
 """
 SELECT m.title, m.culture, md.media_rank
 FROM artifact_metadata m
-JOIN artifact_media md ON m.id = md.objectid
+JOIN artifact_media md
+ON m.id = md.objectid
 WHERE m.period IS NOT NULL;
 """,
 
-"19. Top 10 ranked artifacts with Grey color":
+"19.Find artifact titles ranked in the top 10 that include the color hue 'Grey'.":
 """
 SELECT DISTINCT m.title, md.media_rank
 FROM artifact_metadata m
@@ -138,53 +160,63 @@ ORDER BY md.media_rank DESC
 LIMIT 10;
 """,
 
-"20. Artifacts per classification & avg media count":
+"20.How many artifacts exist per classification, and what is the average media count for each?":
 """
-SELECT m.classification, COUNT(*) AS total_artifacts,
-AVG(md.mediacount) AS avg_media
+SELECT m.department AS classification,
+       COUNT(*) AS total_artifacts,
+       AVG(md.mediacount) AS avg_media
 FROM artifact_metadata m
-JOIN artifact_media md ON m.id = md.objectid
-GROUP BY m.classification;
+JOIN artifact_media md
+ON m.id = md.objectid
+GROUP BY m.department;
 """,
 
-# ---------- EXTRA (FOR FULL MARKS) ----------
-"21. Oldest artifact":
+# ==================================================
+# ⭐ EXTRA QUERIES (Learner Framed)
+# ==================================================
+
+"21.What is the oldest artifact in the collection?":
 """
-SELECT title, datebegin
+SELECT m.title, md.datebegin
 FROM artifact_media md
-JOIN artifact_metadata m ON md.objectid = m.id
-ORDER BY datebegin ASC
+JOIN artifact_metadata m
+ON md.objectid = m.id
+ORDER BY md.datebegin ASC
 LIMIT 1;
 """,
 
-"22. Latest acquired artifact":
+"22.Which artifact has the highest media rank?":
 """
-SELECT title, accessionyear
+SELECT m.title, md.media_rank
+FROM artifact_media md
+JOIN artifact_metadata m
+ON md.objectid = m.id
+ORDER BY md.media_rank DESC
+LIMIT 1;
+""",
+
+"23.Which artifacts do not have culture information?":
+"""
+SELECT *
 FROM artifact_metadata
-ORDER BY accessionyear DESC
-LIMIT 1;
-""",
-
-"23. Artifacts without culture":
-"""
-SELECT * FROM artifact_metadata
 WHERE culture IS NULL;
 """,
 
-"24. Avg images per classification":
+"24.What is the average number of images per department?":
 """
-SELECT m.classification, AVG(md.imagecount)
+SELECT m.department, AVG(md.imagecount) AS avg_images
 FROM artifact_metadata m
-JOIN artifact_media md ON m.id = md.objectid
-GROUP BY m.classification;
+JOIN artifact_media md
+ON m.id = md.objectid
+GROUP BY m.department;
 """,
 
-"25. Most colorful artifact":
+"25.Which is the most colorful artifact based on total color coverage?":
 """
-SELECT objectid, SUM(percent) AS total_color
+SELECT objectid, SUM(percent) AS total_color_coverage
 FROM artifact_colors
 GROUP BY objectid
-ORDER BY total_color DESC
+ORDER BY total_color_coverage DESC
 LIMIT 1;
 """
 }
